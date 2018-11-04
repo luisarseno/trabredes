@@ -1,0 +1,7 @@
+{
+  "ipDestino"  : "127.0.0.1",
+  "porta"      : "6002",
+  "apelido"    : "Ronaldo",
+  "tempo"      : "2",
+  "token"      : true
+}
