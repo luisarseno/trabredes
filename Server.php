@@ -134,18 +134,19 @@ class Server {
                 }
                 return array(true, '2345;'.$controle.":".$de.":".$para.":".$tipo.":".$texto);
             } elseif($de == $this->config['apelido']){
-                $this->podeEnviarToken = true;
+
                 //eu que enviei
                 if(strstr($controle, 'erro')){
                     //enfileira a mensagem de novo
                     echo "Erro na mensagem:  ".$mensagem." -> Reenfileirando\n";
-                    return $this->enfileiraMensagem("2345;naocopiado:".$de.":".$para.":".$tipo.":".$texto);
+                    $this->enfileiraMensagem("2345;naocopiado:".$de.":".$para.":".$tipo.":".$texto);
+                    return array(true, self::$token);
                 } elseif (strstr($controle, 'naocopiado') AND $para != 'TODOS'){
                     echo "Nao encontrado o destinatario: ".$mensagem."\n";
                 } else {
                     echo "Mensagem entregue com sucesso : " . $mensagem . " \n";
                 }
-
+                $this->podeEnviarToken = true;
 
             } elseif($para == 'TODOS'){
                 //broadcast
