@@ -22,15 +22,17 @@ class Server {
     //token definido no trabalho
     private static $token = 1234;
 
+    private $ipServer;
     //socket
     private $socket;
 
-    public function __construct(){
+    public function __construct($ipServer){
         $this->config = Helper::readFile();
         $this->controleToken = $this->config['token'];
         if($this->controleToken){
             $this->controleMensagem = true;
         }
+        $this->ipServer = $ipServer;
         $this->criaSocket();
     }
 
@@ -50,7 +52,7 @@ class Server {
             $errormsg = socket_strerror($errorcode);
             die("Não conseguiu criar o socket [$errorcode] $errormsg \n");
         }
-        if( !socket_bind($this->socket, '127.0.0.1' , 6000) ) {
+        if( !socket_bind($this->socket, $this->ipServer , 6000) ) {
             $errorcode = socket_last_error();
             $errormsg = socket_strerror($errorcode);
             die("Não conseguiu bindar a porta [$errorcode] $errormsg \n");
@@ -87,7 +89,7 @@ class Server {
                 $retorno = $this->trataRetornoRecebido($remoteIp, $mensagem);
 
                 //se for o ip local manda pra ele de novo, senao manda pro da frente
-                $remote = ($remoteIp == '127.0.0.1') ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
+                $remote = ($remoteIp == $this->ipServer) ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
 
                 //Envia a mensagem de novo pro cliente
                 socket_sendto($this->socket, $retorno[1], 100, 0, $remote[0], $remote[1]);
@@ -97,7 +99,7 @@ class Server {
     }
 
     private function trataRetornoRecebido($remoteIp, $mensagem){
-        if($remoteIp == '127.0.0.1'){
+        if($remoteIp == $this->ipServer){
             return $this->enfileiraMensagem($mensagem);
         }
 
