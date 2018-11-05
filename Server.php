@@ -97,7 +97,9 @@ class Server {
                     echo "Mensagem recebida: ".$mensagem."\n";
                 }
                 $retorno = $this->trataRetornoRecebido($remoteIp, $mensagem);
-
+                if(is_null($retorno)){
+                    continue;
+                }
                 //se for o ip local manda pra ele de novo, senao manda pro da frente
                 $remote = ($remoteIp == $this->ipServer) ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
 
@@ -170,6 +172,7 @@ class Server {
             } else {
                 $this->podeEnviarToken = false;
             }
+            return null;
         }
 
     }
