@@ -22,6 +22,8 @@ class Server {
     //token definido no trabalho
     private static $token = 1234;
 
+    private $podeEnviarToken;
+
     private $ipServer;
     //socket
     private $socket;
@@ -31,6 +33,7 @@ class Server {
         $this->controleToken = $this->config['token'];
         if($this->controleToken){
             $this->controleMensagem = true;
+            $this->podeEnviarToken = true;
         }
         $this->ipServer = $ipServer;
         $this->criaSocket();
@@ -66,20 +69,27 @@ class Server {
         echo "Ira se comunicar com: ".$this->config['ipDestino'].":".$this->config['porta']."\n";
         while(1){
             echo str_pad("=", 80 , "=")."\n";
-            if($this->controleToken){
+            if($this->controleToken && $this->podeEnviarToken){
                 if(count($this->mensagens) && $this->controleMensagem){
                     //tenho token e posso mandar mensagens
                     $mensagem = array_shift($this->mensagens);
-                    //$this->controleMensagem = false;
+                    $this->controleMensagem = false;
                     echo "Desenfileirado mensagem\n";
+                    $this->podeEnviarToken = false;
                 } else {
                     //so envio o token
                     echo "Enviando token\n";
                     $mensagem = self::$token;
+                }
+                if($mensagem == self::$token && !$this->podeEnviarToken){
+                    //se a mensagem é o token e nao pode enviar o token da um continue
+                    continue;
+                } else {
                     $this->controleToken = false;
                     $this->controleMensagem = false;
                 }
                 socket_sendto($this->socket, $mensagem, 100 , 0 , $this->config['ipDestino'], $this->config['porta']);
+
             } else {
 
                 socket_recvfrom($this->socket, $mensagem, 512, 0, $remoteIp, $remotePort);
@@ -124,7 +134,7 @@ class Server {
                 }
                 return array(true, '2345;'.$controle.":".$de.":".$para.":".$tipo.":".$texto);
             } elseif($de == $this->config['apelido']){
-
+                $this->podeEnviarToken = true;
                 //eu que enviei
                 if(strstr($controle, 'erro')){
                     //enfileira a mensagem de novo
@@ -135,6 +145,7 @@ class Server {
                 } else {
                     echo "Mensagem entregue com sucesso : " . $mensagem . " \n";
                 }
+
 
             } elseif($para == 'TODOS'){
                 //broadcast
