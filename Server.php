@@ -140,13 +140,13 @@ class Server {
                     //enfileira a mensagem de novo
                     echo "Erro na mensagem:  ".$mensagem." -> Reenfileirando\n";
                     $this->enfileiraMensagem("2345;naocopiado:".$de.":".$para.":".$tipo.":".$texto);
-                    return array(true, self::$token);
                 } elseif (strstr($controle, 'naocopiado') AND $para != 'TODOS'){
                     echo "Nao encontrado o destinatario: ".$mensagem."\n";
                 } else {
                     echo "Mensagem entregue com sucesso : " . $mensagem . " \n";
                 }
-                $this->podeEnviarToken = true;
+                //retorno o token
+                return array(true, self::$token);
 
             } elseif($para == 'TODOS'){
                 //broadcast
@@ -167,6 +167,8 @@ class Server {
             //pode enviar token se a fila tiver vazia
             if(count($this->mensagens) == 0){
                 $this->podeEnviarToken = true;
+            } else {
+                $this->podeEnviarToken = false;
             }
         }
 
