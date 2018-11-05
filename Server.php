@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: santana
- * Date: 03/11/18
- * Time: 18:35
- */
+
 
 require_once 'FileHelper.php';
 use FileHelper as Helper;
@@ -41,9 +36,11 @@ class Server {
 
     private function enfileiraMensagem($mensagem){
         if(count($this->mensagens) >= 10){
+            echo "Fila de mensagens cheia impossivel enfileirar\n";
             return array(false, '[ERROR] Fila chegou no seu limite');
         }
         $this->mensagens[] = $mensagem;
+        echo "Mensagem ".$mensagem." enfileirada com sucesso - tamanaho fila: ".count($this->mensagens)."\n";
         return array(true, '[OK] Mensagem enfileirada com sucesso!');
     }
 
@@ -58,6 +55,8 @@ class Server {
             $errormsg = socket_strerror($errorcode);
             die("Não conseguiu bindar a porta [$errorcode] $errormsg \n");
         }
+      //  socket_set_option($this->socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>5, "usec"=>0));
+
     }
 
     public function startServer(){
@@ -88,7 +87,7 @@ class Server {
                 $retorno = $this->trataRetornoRecebido($remoteIp, $mensagem);
 
                 //se for o ip local manda pra ele de novo, senao manda pro da frente
-                $remote = ($remoteIp == '127.0.0.1' AND strstr($mensagem, 'INTERNO')) ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
+                $remote = ($remoteIp == '127.0.0.1') ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
 
                 //Envia a mensagem de novo pro cliente
                 socket_sendto($this->socket, $retorno[1], 100, 0, $remote[0], $remote[1]);
@@ -98,8 +97,8 @@ class Server {
     }
 
     private function trataRetornoRecebido($remoteIp, $mensagem){
-        if($remoteIp == '127.0.0.1' AND strstr($mensagem, 'INTERNO')){
-            return $this->enfileiraMensagem(str_replace('INTERNO', '',$mensagem));
+        if($remoteIp == '127.0.0.1'){
+            return $this->enfileiraMensagem($mensagem);
         }
 
         if(substr($mensagem, 0, 5) == '2345;'){
@@ -123,15 +122,25 @@ class Server {
                 }
                 return array(true, '2345;'.$controle.":".$de.":".$para.":".$tipo.":".$texto);
             } elseif($de == $this->config['apelido']){
+
                 //eu que enviei
                 if(strstr($controle, 'erro')){
                     //enfileira a mensagem de novo
+                    echo "Erro na mensagem:  ".$mensagem." -> Reenfileirando\n";
                     return $this->enfileiraMensagem("2345;naocopiado:".$de.":".$para.":".$tipo.":".$texto);
+                } elseif (strstr($controle, 'naocopiado') AND $para != 'TODOS'){
+                    echo "Nao encontrado o destinatario: ".$mensagem."\n";
+                } else {
+                    echo "Mensagem entregue com sucesso : " . $mensagem . " \n";
                 }
-                //se nao for erro, nao faz nada
-            } else {
+
+            } elseif($para == 'TODOS'){
+                //broadcast
+                echo "Mensagem broadcast: ".$mensagem."\n";
+                return array(true,$mensagem);
+            }else {
                 //a mensagem é pra outra pessoa, só repassa
-                echo "Essa mensagem eh uma retransmissao\n";
+                echo "Mensagem eh uma retransmissao: ".$mensagem."\n";
                 return array(true, $mensagem);
             }
         } elseif($mensagem == self::$token){

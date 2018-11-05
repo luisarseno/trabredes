@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: santana
- * Date: 03/11/18
- * Time: 19:09
- */
 
 require_once 'FileHelper.php';
 
@@ -108,7 +102,7 @@ class Client{
                 return array(false, 'Arquivo nao existe!!');
             } else {
                 $text = ($tipo == 'A') ? file_get_contents(rtrim(str_replace(" ", "",$text), "\n")) : $text;
-                $data = "2345;naocopiado:" . $this->nickname . ":" . $para . ":" . $tipo . ":" . rtrim($text, "\n");
+                $data = "2345;naocopiado:" . $this->nickname . ":" . $para . ":" . $tipo . ":" . rtrim($text, "\n\t");
                 return array(true, $data);
             }
         }
