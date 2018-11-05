@@ -163,6 +163,10 @@ class Server {
             $this->controleToken = true;
             //pode enviar mensagem
             $this->controleMensagem = true;
+            //pode enviar token se a fila tiver vazia
+            if(count($this->mensagens) == 0){
+                $this->podeEnviarToken = true;
+            }
         }
 
     }
