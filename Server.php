@@ -69,7 +69,7 @@ class Server {
         echo "Ira se comunicar com: ".$this->config['ipDestino'].":".$this->config['porta']."\n";
         while(1){
             echo str_pad("=", 80 , "=")."\n";
-            if($this->controleToken && $this->podeEnviarToken){
+            if($this->controleToken){
                 if(count($this->mensagens) && $this->controleMensagem){
                     //tenho token e posso mandar mensagens
                     $mensagem = array_shift($this->mensagens);
@@ -97,9 +97,7 @@ class Server {
                     echo "Mensagem recebida: ".$mensagem."\n";
                 }
                 $retorno = $this->trataRetornoRecebido($remoteIp, $mensagem);
-                if(is_null($retorno)){
-                    continue;
-                }
+
                 //se for o ip local manda pra ele de novo, senao manda pro da frente
                 $remote = ($remoteIp == $this->ipServer) ? array($remoteIp, $remotePort) : array($this->config['ipDestino'], $this->config['porta']);
 
@@ -148,6 +146,7 @@ class Server {
                     echo "Mensagem entregue com sucesso : " . $mensagem . " \n";
                 }
                 //retorno o token
+                $this->controleToken = false;
                 return array(true, self::$token);
 
             } elseif($para == 'TODOS'){
@@ -166,13 +165,8 @@ class Server {
             $this->controleToken = true;
             //pode enviar mensagem
             $this->controleMensagem = true;
-            //pode enviar token se a fila tiver vazia
-            if(count($this->mensagens) == 0){
-                $this->podeEnviarToken = true;
-            } else {
-                $this->podeEnviarToken = false;
-            }
-            return null;
+            //posso enviar o token
+            $this->podeEnviarToken = true;
         }
 
     }
