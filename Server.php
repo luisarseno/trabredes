@@ -16,7 +16,7 @@ class Server {
     //controla se pode enviar mensagem
     private $controleMensagem;
 
-    //variavel responsavel pela configuração
+    //variavel responsavel pela configuraï¿½ï¿½o
     private $config;
 
     //token definido no trabalho
@@ -53,15 +53,14 @@ class Server {
         if(!($this->socket = socket_create(AF_INET, SOCK_DGRAM, 0))){
             $errorcode = socket_last_error();
             $errormsg = socket_strerror($errorcode);
-            die("Não conseguiu criar o socket [$errorcode] $errormsg \n");
+            die("Nï¿½o conseguiu criar o socket [$errorcode] $errormsg \n");
         }
         if( !socket_bind($this->socket, $this->ipServer , 6000) ) {
             $errorcode = socket_last_error();
             $errormsg = socket_strerror($errorcode);
-            die("Não conseguiu bindar a porta [$errorcode] $errormsg \n");
+            die("Nï¿½o conseguiu bindar a porta [$errorcode] $errormsg \n");
         }
       //  socket_set_option($this->socket,SOL_SOCKET, SO_RCVTIMEO, array("sec"=>5, "usec"=>0));
-
     }
 
     public function startServer(){
@@ -82,7 +81,7 @@ class Server {
                     $mensagem = self::$token;
                 }
                 if($mensagem == self::$token && !$this->podeEnviarToken){
-                    //se a mensagem é o token e nao pode enviar o token da um continue
+                    //se a mensagem ï¿½ o token e nao pode enviar o token da um continue
                     continue;
                 } else {
                     $this->controleToken = false;
@@ -121,7 +120,7 @@ class Server {
             $tipo         = $data[3];
             $texto        = $data[4];
             if($para == $this->config['apelido']){
-                //a mensagem é pra mim
+                //a mensagem ï¿½ pra mim
                 //aplica propablidade
                 if(rand(0,50) <= 10){
                     $controle = 'erro';
@@ -154,12 +153,12 @@ class Server {
                 echo "Mensagem broadcast: ".$mensagem."\n";
                 return array(true,$mensagem);
             }else {
-                //a mensagem é pra outra pessoa, só repassa
+                //a mensagem ï¿½ pra outra pessoa, sï¿½ repassa
                 echo "Mensagem eh uma retransmissao: ".$mensagem."\n";
                 return array(true, $mensagem);
             }
         } elseif($mensagem == self::$token){
-            //é o token
+            //ï¿½ o token
             echo "Token recebido com sucesso!\n";
             //seta o controle como true
             $this->controleToken = true;

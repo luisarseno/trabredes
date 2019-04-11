@@ -4,28 +4,32 @@ require_once 'FileHelper.php';
 
 class Client{
 
-    private $serverIp;
-    private $serverPort;
-    private $socket;
-    private $nickname;
+    protected $serverIp;
+    protected $serverPort;
+    protected $socket;
+    protected $nickname;
+    protected $path;
 
-    public function __construct($serverIp, $serverPort) {
+    public function __construct($serverIp, $serverPort, $path) {
         $this->serverIp = $serverIp;
         $this->serverPort = $serverPort;
         $this->criaSocket();
-        $this->setNickname();
+        $this->path = $path;
     }
 
-    /**
-     * Pega o nome do usuário responsável por mandar a mensagem
-     */
-    public function setNickname(){
-        $config =  FileHelper::readFile();
-        if(is_array($config) && count($config)){
-            $this->nickname = $config['apelido'];
+    public function loadFiles(){
+        if(is_dir($this->path)){
+            $files = glob($this->path."/*");
+            foreach ($files as $file){
+                $message = json_encode(array(
+                    'action' => 'loadfile',
+                    'file'   => str_replace($this->path."/","", $file),
+                    'hash'   => md5(uniqid().$file)
+                ));
+                socket_sendto($this->socket, $message , strlen($message) , 0 , $this->serverIp , $this->serverPort);
+            }
         }
     }
-
 
     /**
      * Abre socket UDP
@@ -34,13 +38,13 @@ class Client{
         if(!($this->socket = socket_create(AF_INET, SOCK_DGRAM, 0))){
             $errorcode = socket_last_error();
             $errormsg = socket_strerror($errorcode);
-            die("Não pode criar o socket: [$errorcode] $errormsg \n");
+            die("Nï¿½o pode criar o socket: [$errorcode] $errormsg \n");
         }
     }
 
 
     /**
-     * Starta a comunicação com o servidor e printa as informações na tela do cliente
+     * Starta a comunicaï¿½ï¿½o com o servidor e printa as informaï¿½ï¿½es na tela do cliente
      */
     public function startClient(){
         while(1)
@@ -51,11 +55,7 @@ class Client{
                 echo "Finalizando programa\n";
                 break;
             }
-            $mensagem = $this->trataMensagem($mensagem);
-            if(!$mensagem[0]){
-                echo "\t[ERROR] -> Mensagem invalida: ".$mensagem[1]." \n\n";
-                continue;
-            }
+
             //Manda mensagem pro servidor
             if( ! socket_sendto($this->socket, $mensagem[1] , strlen($mensagem[1]) , 0 , $this->serverIp , $this->serverPort))
             {
@@ -93,7 +93,7 @@ class Client{
         if(!in_array($tipo, array('file','text'))){
             return array(false, 'Tipo '.$tipo.' eh invalido');
         } elseif (!$para){
-            return array(false, 'Destinatário invalido');
+            return array(false, 'Destinatï¿½rio invalido');
         } elseif ($text == ""){
             return array(false, 'Mensagem invalida');
         } else {
@@ -120,7 +120,7 @@ class Client{
     }
 
     /**
-     * Printa as instruçõe de como mandar uma mensagem pro cliente
+     * Printa as instruï¿½ï¿½e de como mandar uma mensagem pro cliente
      */
     private function printaInstrucoes(){
         echo "Para enviar mensagem digite: \"text nome-do-destinatario mensagem\" \n";
